@@ -14,13 +14,13 @@ import time
 # -----------------------------------------------
 cuda_idx = 1
 file_idx = 1
-device = torch.device('cuda:' + str(cuda_idx))
-torch.cuda.set_device(device)
+device = torch.device('cpu')
 train_seq, test_seq = np.load('../train_seq.npy'), np.load('../test_seq.npy')
 val_seq = train_seq[5000:]
 train_seq = train_seq[:5000]
 
 # -----------------------------------------------
+# Model Initialization
 train_data, test_data = get_data()
 epoch_size, batch_size = 200, 24
 in_channel = 9
@@ -33,14 +33,14 @@ net = Net(
     heads=(3, 6, 12, 24),
     head_dim=32,
     window_size=9,
-    relative_pos_embedding=True,).cuda()
+    relative_pos_embedding=True,).to(device)
 min_test_loss, out_count = 1e10, 0
 min_mae = 1e10
 
 # -----------------------------------------------
 opt = optim.Adam(net.parameters(), lr=1e-3)
 lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(opt, mode="min", factor=0.1, patience=5, verbose=True)
-criterion = BMAEloss().cuda()
+criterion = BMAEloss().to(device)
 
 def MSE(y_hat, y):
     sub = y_hat - y
@@ -56,8 +56,8 @@ for epoch in range(1, epoch_size + 1):
     pbar = tqdm(ran)
     for batch in pbar:
         x, y = data_2_cnn(train_data, batch, batch_size, train_seq)
-        x = x.cuda()
-        y = y.cuda()
+        x = x.to(device)
+        y = y.to(device)
         y_hat = net(x)
         loss = criterion(y_hat, y)
         opt.zero_grad()
@@ -79,8 +79,8 @@ for epoch in range(1, epoch_size + 1):
         for batch in pbar:
             # 因为验证集是从训练集中得到的，所以还是train_data
             x, y = data_2_cnn(train_data, batch, batch_size, val_seq)
-            x = x.cuda()
-            y = y.cuda()
+            x = x.to(device)
+            y = y.to(device)
             y_hat = net(x)
 
             loss = criterion(y_hat, y)
