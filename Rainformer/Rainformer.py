@@ -53,16 +53,17 @@ class Net(nn.Module):
 
         return x8
 
-# batch_size = 2
-# x = torch.randn((batch_size, 9, 288, 288))
-# net = Net(
-#     input_channel=9,
-#     hidden_dim=96,
-#     downscaling_factors=(4, 2, 2, 2),
-#     layers=(2, 2, 2, 2),
-#     heads=(3, 6, 12, 24),
-#     head_dim=32,
-#     window_size=9,
-#     relative_pos_embedding=True,)
-# y = net(x)
-# print(y.shape)
+if __name__ == '__main__':
+    batch_size = 2
+    x = torch.randn((batch_size, 9, 288, 288))
+    net = Net(
+        input_channel=9,
+        hidden_dim=96,
+        downscaling_factors=(4, 2, 2, 2),
+        layers=(2, 2, 2, 2),
+        heads=(3, 6, 12, 24),
+        head_dim=32,
+        window_size=9,
+        relative_pos_embedding=True,)
+    y = net(x)
+    print(y.shape)

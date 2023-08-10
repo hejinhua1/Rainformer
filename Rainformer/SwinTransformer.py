@@ -11,6 +11,7 @@ class Flatten(nn.Module):
 
 class GRU(nn.Module):
     def __init__(self, channel, h_w, kernel_size=3, stride=1, padding=1):
+        # TODO 这个模块在原文中是GFU，而且输入g,l都经过了卷积
         super(GRU, self).__init__()
         height, width = h_w
         self.conv_1 = nn.Sequential(
@@ -464,17 +465,19 @@ def swin_b(hidden_dim=128, layers=(2, 2, 18, 2), heads=(4, 8, 16, 32), **kwargs)
 def swin_l(hidden_dim=192, layers=(2, 2, 18, 2), heads=(6, 12, 24, 48), **kwargs):
     return SwinTransformer(hidden_dim=hidden_dim, layers=layers, heads=heads, **kwargs)
 
-# net = SwinTransformer(
-#     hidden_dim=96,
-#     layers=(2, 2, 6, 2),
-#     heads=(3, 6, 12, 24),
-#     channels=3,
-#     num_classes=3,
-#     head_dim=32,
-#     window_size=7,
-#     downscaling_factors=(4, 2, 2, 2),
-#     relative_pos_embedding=True
-# )
-# dummy_x = torch.randn(1, 3, 224, 224)
-# y = net(dummy_x)  # (1,3)
-# print(y)
+
+if __name__ == '__main__':
+    net = SwinTransformer(
+        hidden_dim=96,
+        layers=(2, 2, 6, 2),
+        heads=(3, 6, 12, 24),
+        channels=3,
+        num_classes=3,
+        head_dim=32,
+        window_size=7,
+        downscaling_factors=(4, 2, 2, 2),
+        relative_pos_embedding=True
+    )
+    dummy_x = torch.randn(1, 3, 224, 224)
+    y = net(dummy_x)  # (1,3)
+    print(y)

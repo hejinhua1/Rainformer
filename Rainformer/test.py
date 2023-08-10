@@ -14,8 +14,7 @@ import time
 # -----------------------------------------------
 cuda_idx = 1
 file_idx = 2
-device = torch.device('cuda:' + str(cuda_idx))
-torch.cuda.set_device(device)
+device = torch.device('cpu')
 test_seq = np.load('../test_seq.npy')
 
 # -----------------------------------------------
