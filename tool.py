@@ -276,7 +276,8 @@ class BMAEloss(nn.Module):
         return flag_3 == 2
 
     def forward(self, pred, y):
-        mask = torch.zeros(y.shape).cuda()
+        # TODO 修改回来用CUDA， mask.cuda()
+        mask = torch.zeros(y.shape)
         mask[y < 2] = 1
         mask[self.fundFlag(y, 2, 5)] = 2
         mask[self.fundFlag(y, 5, 10)] = 5

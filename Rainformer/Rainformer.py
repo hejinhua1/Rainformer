@@ -1,6 +1,8 @@
 import torch
-from torch import nn
 from SwinTransformer import StageModule, StageModule_up, StageModule_up_final
+from torch import nn, optim
+from tool import *
+from tqdm import tqdm, trange
 
 class Net(nn.Module):
     def __init__(self, input_channel, hidden_dim, downscaling_factors, layers, heads, head_dim, window_size, relative_pos_embedding):
@@ -54,8 +56,10 @@ class Net(nn.Module):
         return x8
 
 if __name__ == '__main__':
-    batch_size = 2
+    file_idx = 1
+    epoch_size, batch_size = 200, 24
     x = torch.randn((batch_size, 9, 288, 288))
+    y = torch.randn((batch_size, 9, 288, 288))
     net = Net(
         input_channel=9,
         hidden_dim=96,
@@ -65,5 +69,38 @@ if __name__ == '__main__':
         head_dim=32,
         window_size=9,
         relative_pos_embedding=True,)
-    y = net(x)
-    print(y.shape)
+    device = torch.device('cpu')
+    train_seq, test_seq = np.load('../train_seq.npy'), np.load('../test_seq.npy')
+    val_seq = train_seq[5000:]
+    train_seq = train_seq[:5000]
+    opt = optim.Adam(net.parameters(), lr=1e-3)
+    lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(opt, mode="min", factor=0.1, patience=5, verbose=True)
+    criterion = BMAEloss().to(device)
+
+
+    for epoch in range(1, epoch_size + 1):
+        train_l_sum, test_l_sum, n = 0.0, 0.0, 0
+        net.train()
+        np.random.shuffle(train_seq)
+        ran = np.arange(batch_size, train_seq.shape[0], batch_size)
+        pbar = tqdm(ran)
+        for batch in pbar:
+            x = x.to(device)
+            y = y.to(device)
+            y_hat = net(x)
+            loss = criterion(y_hat, y)
+            opt.zero_grad()
+            loss.backward()
+            opt.step()
+            loss_num = loss.detach().cpu().numpy()
+            pbar.set_description('Train MSE Loss: ' + str(loss_num / batch_size))
+            train_l_sum += loss_num
+            n += batch_size
+        train_loss = train_l_sum / n
+
+
+
+
+
+
+

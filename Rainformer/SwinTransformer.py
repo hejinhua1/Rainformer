@@ -183,7 +183,10 @@ class WindowAttention(nn.Module):
         dots = einsum('b h w i d, b h w j d -> b h w i j', q, k) * self.scale
 
         if self.relative_pos_embedding:
-            dots += self.pos_embedding[self.relative_indices[:, :, 0], self.relative_indices[:, :, 1]]
+            # dots += self.pos_embedding[self.relative_indices[:, :, 0], self.relative_indices[:, :, 1]]
+            # 上面的写法会报错
+            dots += self.pos_embedding[self.relative_indices[:, :, 0].long(), self.relative_indices[:, :, 1].long()]
+
         else:
             dots += self.pos_embedding
 
@@ -422,19 +425,19 @@ class SwinTransformer(nn.Module):
 
         self.stage1 = StageModule(in_channels=channels, hidden_dimension=hidden_dim, layers=layers[0],
                                   downscaling_factor=downscaling_factors[0], num_heads=heads[0], head_dim=head_dim,
-                                  window_size=window_size, relative_pos_embedding=relative_pos_embedding)
+                                  window_size=window_size, relative_pos_embedding=relative_pos_embedding, h_w=[72, 72])
 
         self.stage2 = StageModule(in_channels=hidden_dim, hidden_dimension=hidden_dim * 2, layers=layers[1],
                                   downscaling_factor=downscaling_factors[1], num_heads=heads[1], head_dim=head_dim,
-                                  window_size=window_size, relative_pos_embedding=relative_pos_embedding)
+                                  window_size=window_size, relative_pos_embedding=relative_pos_embedding, h_w=[36, 36])
 
         self.stage3 = StageModule(in_channels=hidden_dim * 2, hidden_dimension=hidden_dim * 4, layers=layers[2],
                                   downscaling_factor=downscaling_factors[2], num_heads=heads[2], head_dim=head_dim,
-                                  window_size=window_size, relative_pos_embedding=relative_pos_embedding)
+                                  window_size=window_size, relative_pos_embedding=relative_pos_embedding, h_w=[18, 18])
 
         self.stage4 = StageModule(in_channels=hidden_dim * 4, hidden_dimension=hidden_dim * 8, layers=layers[3],
                                   downscaling_factor=downscaling_factors[3], num_heads=heads[3], head_dim=head_dim,
-                                  window_size=window_size, relative_pos_embedding=relative_pos_embedding)
+                                  window_size=window_size, relative_pos_embedding=relative_pos_embedding, h_w=[9, 9])
 
         self.mlp_head = nn.Sequential(
             nn.LayerNorm(hidden_dim * 8),
@@ -478,6 +481,6 @@ if __name__ == '__main__':
         downscaling_factors=(4, 2, 2, 2),
         relative_pos_embedding=True
     )
-    dummy_x = torch.randn(1, 3, 224, 224)
+    dummy_x = torch.randn(1, 3, 288, 288)
     y = net(dummy_x)  # (1,3)
     print(y)
