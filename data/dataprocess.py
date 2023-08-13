@@ -15,7 +15,6 @@ output_path = u'E:/HJHCloud/Seafile/typhoon data/bigdata/data.npy'
 
 
 if __name__ == '__main__':
-
     big_data = []
     oneHourData = np.zeros((13, 6, 41, 61), dtype=np.float32)
     oneHour_oneVari_Data = np.zeros((6, 41, 61), dtype=np.float32)
