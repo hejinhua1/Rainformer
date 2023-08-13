@@ -3,10 +3,14 @@ import pandas as pd
 import pygrib
 import numpy as np
 import locale
+import logging
 import xarray as xr
 import sys
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
+# 设置日志文件路径
+log_file_path = 'output_log.txt'
+logging.basicConfig(filename=log_file_path, level=logging.INFO)
 
 # 目录路径
 # directory_path = 'E:/HJHCloud/Seafile/startup/Rainformer/data/01.grib2'
@@ -23,13 +27,10 @@ if __name__ == '__main__':
     # 遍历目录下的所有文件
     for year_path in os.listdir(directory_path):
 
-        if year_path =='1980':
-            break
-
-        print('#########################开始处理{}年的数据#########################'.format(year_path))
+        logging.info('#########################开始处理{}年的数据#########################'.format(year_path))
         year_file_path = os.path.join(directory_path, year_path)
         for month_path in os.listdir(year_file_path):
-            print('##################开始处理{}月的数据##################'.format(month_path[:2]))
+            logging.info('##################开始处理{}月的数据##################'.format(month_path[:2]))
             if month_path.endswith(".grib2"):
                 # 打开 grib2 文件
                 grib2file = os.path.join(year_file_path+'/', month_path)
@@ -55,14 +56,14 @@ if __name__ == '__main__':
                     data = grb.values
 
                     if data.shape != (41, 61):
-                        print('########{}变量{}数据维度与其他不一致########'.format(date, variable_name))
+                        logging.info('########{}变量{}数据维度与其他不一致########'.format(date, variable_name))
                         continue
 
                     # TODO 用try except 处理
                     # 异常处理
                     exists_missing = np.isin(missingValue, data)
                     if exists_missing:
-                        print('########{}变量{}缺失处理########'.format(date, variable_name))
+                        logging.info('########{}变量{}缺失处理########'.format(date, variable_name))
                         data[data == missingValue] = np.nan
                         # 计算非缺失值的均值
                         mean_value = np.nanmean(data)
@@ -82,4 +83,4 @@ if __name__ == '__main__':
                 grbs.close()
 
         np.save(output_path, np.array(big_data))
-    print('########################################## 数据处理已完成 ##########################################')
+    logging.info('########################################## 数据处理已完成 ##########################################')
